@@ -1,0 +1,4 @@
+Tienes que adivinar un código de colores en un máximo de intentos.
+Introduce códigos de colores (R=Rojo; A=Azul; V=Verde; N=Negro; G=Granate; M=Marrón).
+¬ indica los colores que están en su lugar.
+~ indica los colores que están en la clave pero no están en su lugar.xxx
