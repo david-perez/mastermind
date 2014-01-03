@@ -52,7 +52,8 @@ tColores toColor(char id);
 bool correctKeys(string input);
 void totCodigo(string input, tCodigo code);
 tStatus readCode(tCodigo code);
-bool printPerformanceMsg(tCodigo code, tCodigo key, usi tries);
+bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys);
+void printPerformanceMsg(tCodigo code, tCodigo key, usi tries);
 void manageStatus(tStatus status, tCodigo code);
 usi playMastermind();
 
@@ -313,12 +314,9 @@ tStatus readCode(tCodigo code) {
 	}
 }
 
-/** Compara los contenidos de code y key, y muestra un mensaje en la consola indicando el número de aciertos totales
- ** y parciales (colores del codigo que están en la clave, pero descolocados), así como el número de intentos.
- ** Devuelve true si el jugador ha acertado por completo la clave, false en caso contrario. **/
-bool printPerformanceMsg(tCodigo code, tCodigo key, usi tries) {
-	usi correct_keys = 0, disordered_keys = 0;
-
+/** Calcula en correct_keys y disordered_keys el número de aciertos totales y parciales de code con respecto a key.
+ ** Devuelve true si code y key son idénticos, false en caso contrario. **/
+bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys) {
 	bool chart[CHIPS];
 
 	// Inicializar todas las entradas de chart a false.
@@ -347,16 +345,21 @@ bool printPerformanceMsg(tCodigo code, tCodigo key, usi tries) {
 		}
 	}
 
-	cout << "   " << tries << ": ";
-	printKey(code);
-	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << endl;
-
 	// Return:
 	if (correct_keys == CHIPS) {
 		return true;
-	} else {
+	}
+	else {
 		return false;
 	}
+}
+
+/** Muestra un mensaje en la consola indicando el número de aciertos totales y parciales
+ ** (colores del codigo que están en la clave, pero descolocados), así como el número de intentos. **/
+void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries) {
+	cout << "   " << tries << ": ";
+	printKey(code);
+	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << endl;
 }
 
 /** Imprime el mensaje correspondiente al estado status. No se contempla el status good. **/
@@ -404,12 +407,21 @@ usi playMastermind() {
 	tStatus status;
 	tCodigo code;
 	usi tries = 0;
+	usi correct_keys = 0;
+	usi disordered_keys = 0;
 	bool won = false;
 	do {
 		status = readCode(code);
 		if (status == good) { // Se ha leído un código de tipo correcto.
+			
+			// Reinicializar contadores:
+			correct_keys = 0;
+			disordered_keys = 0;
+
+			// Calcular intentos, aciertos e imprimir mensaje de rendimiento.
 			tries++;
-			won = printPerformanceMsg(code, key, tries);
+			won = calcPerformance(code, key, correct_keys, disordered_keys);
+			printPerformanceMsg(code, correct_keys, disordered_keys, tries);
 		} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
 			manageStatus(status, code);
 		}
