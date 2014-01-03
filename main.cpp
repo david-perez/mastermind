@@ -53,8 +53,9 @@ bool correctKeys(string input);
 void totCodigo(string input, tCodigo code);
 tStatus readCode(tCodigo code);
 bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys);
-void printPerformanceMsg(tCodigo code, tCodigo key, usi tries);
+void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score);
 void manageStatus(tStatus status, tCodigo code);
+usi computeScore(usi score, usi correct_keys, usi disordered_keys, bool won);
 usi playMastermind();
 
 // #### main() ####
@@ -356,10 +357,10 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 
 /** Muestra un mensaje en la consola indicando el número de aciertos totales y parciales
  ** (colores del codigo que están en la clave, pero descolocados), así como el número de intentos. **/
-void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries) {
+void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries, usi score) {
 	cout << "   " << tries << ": ";
 	printKey(code);
-	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << endl;
+	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score > 1 ? "s" : "") << endl;
 }
 
 /** Imprime el mensaje correspondiente al estado status. No se contempla el status good. **/
@@ -392,6 +393,11 @@ void manageStatus(tStatus status, tCodigo code) {
 	}
 }
 
+/** Calcula la puntuación agregada de un jugador. **/
+usi computeScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
+	return score += disordered_keys + 5 * correct_keys + (won ? 100 : 0);
+}
+
 /** Conduce el desarrollo de una partida a Mastermind. Devuelve el número de intentos empleados
  ** por el jugador (TRIES si no la acertó). Devuelve 0 si se selecciona la opción de salir, independientemente
  ** del número de intentos del jugador hasta ese momento. **/
@@ -406,6 +412,7 @@ usi playMastermind() {
 	// **************** </DEBUG> ****************
 	tStatus status;
 	tCodigo code;
+	usi score = 0;
 	usi tries = 0;
 	usi correct_keys = 0;
 	usi disordered_keys = 0;
@@ -418,10 +425,11 @@ usi playMastermind() {
 			correct_keys = 0;
 			disordered_keys = 0;
 
-			// Calcular intentos, aciertos e imprimir mensaje de rendimiento.
+			// Calcular intentos, aciertos, puntuación e imprimir mensaje de rendimiento.
 			tries++;
 			won = calcPerformance(code, key, correct_keys, disordered_keys);
-			printPerformanceMsg(code, correct_keys, disordered_keys, tries);
+			score = computeScore(score, correct_keys, disordered_keys, won);
+			printPerformanceMsg(code, correct_keys, disordered_keys, tries, score);
 		} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
 			manageStatus(status, code);
 		}
