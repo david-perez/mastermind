@@ -29,7 +29,7 @@ const string INVALID_TYPE = "ERROR. Tipo de datos no válido.";
 const string HELP_FILE = "ayuda.txt";
 const string CENTINEL = "xxx";
 const string PROMPT = "Código (? para ayuda, 0 para cancelar): ";
-const usi CHIPS = 4, TRIES = 30, COLORS = 6;
+const usi CHIPS = 4, TRIES = 3, COLORS = 6;
 const bool REPTS = false; // false = sin repeticiones, true = con repeticiones.
 
 // #### other typedef declarations ####
@@ -54,6 +54,7 @@ void totCodigo(string input, tCodigo code);
 tStatus readCode(tCodigo code);
 bool printPerformanceMsg(tCodigo code, tCodigo key, usi tries);
 void manageStatus(tStatus status, tCodigo code);
+usi playMastermind();
 
 // #### main() ####
 int main() {
@@ -65,35 +66,8 @@ int main() {
 		cout << endl;
 		switch (opt) {
 			case 1: // Jugar una partida a Mastermind.
-				cout << "--- NUEVA PARTIDA ---" << endl << endl;
-				tCodigo key;
-				genRndKey(key);
-				// **************** <DEBUG> ****************
-				cout << "La clave es: ";
-				printKey(key);
-				cout << endl;
-				// **************** </DEBUG> ****************
-				tStatus status;
-				tCodigo code;
-				usi tries = 0;
-				bool won = false;
-				do {
-					status = readCode(code);
-					if (status == good) { // Se ha leído un código de tipo correcto.
-						tries++;
-						won = printPerformanceMsg(code, key, tries);
-						if (won) {
-							cout << "¡ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
-						}
-					} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
-						manageStatus(status, code);
-					}
-				} while (tries < TRIES && !won && status != cancel);
-				if (status != cancel && !won) { // Se salió del bucle porque se acabaron los intentos.
-					cout << "Se te han acabado los intentos. La clave era: ";
-					printKey(key);
-					cout << "." << endl;
-				}
+				usi tries;
+				tries = playMastermind();
 		}
 		
 		// Mostrar el menú y leer otra opción:
@@ -385,7 +359,7 @@ bool printPerformanceMsg(tCodigo code, tCodigo key, usi tries) {
 	}
 }
 
-/** Imprime el mensaje correspondiente al estado status. **/
+/** Imprime el mensaje correspondiente al estado status. No se contempla el status good. **/
 void manageStatus(tStatus status, tCodigo code) {
 	switch (status) {
 		case cancel:
@@ -413,4 +387,43 @@ void manageStatus(tStatus status, tCodigo code) {
 			cout << endl;
 			break;
 	}
+}
+
+/** Conduce el desarrollo de una partida a Mastermind. Devuelve el número de intentos empleados
+ ** por el jugador (TRIES si no la acertó). Devuelve 0 si se selecciona la opción de salir, independientemente
+ ** del número de intentos del jugador hasta ese momento. **/
+usi playMastermind() {
+	cout << "--- NUEVA PARTIDA ---" << endl << endl;
+	tCodigo key;
+	genRndKey(key);
+	// **************** <DEBUG> ****************
+	cout << "La clave es: ";
+	printKey(key);
+	cout << endl;
+	// **************** </DEBUG> ****************
+	tStatus status;
+	tCodigo code;
+	usi tries = 0;
+	bool won = false;
+	do {
+		status = readCode(code);
+		if (status == good) { // Se ha leído un código de tipo correcto.
+			tries++;
+			won = printPerformanceMsg(code, key, tries);
+		} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
+			manageStatus(status, code);
+		}
+	} while (tries < TRIES && !won && status != cancel);
+	
+	// Preguntar por la razón de salida del bucle.
+	if (won) { // El jugador ha acertado la clave.
+		cout << "¡ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
+	} else if (tries == TRIES) { // El jugador no acertó la clave en el intento TRIES.
+		cout << "Se te han acabado los " << tries << " intentos. La clave era: ";
+		printKey(key);
+		cout << "." << endl;
+	} else { // El jugador ha abandonado el juego.
+		tries = 0;
+	}
+	return tries;
 }
