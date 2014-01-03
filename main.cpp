@@ -28,14 +28,14 @@ typedef unsigned short int usi;
 const string INVALID_TYPE = "ERROR. Tipo de datos no válido.";
 const string HELP_FILE = "ayuda.txt";
 const string CENTINEL = "xxx";
-const string PROMPT = "Código (? para ayuda, 0 para cancelar): ";
-const usi CHIPS = 4, TRIES = 3, COLORS = 6;
+const string PROMPT = "Código (? para ayuda, ! para pista, 0 para cancelar): ";
+const usi CHIPS = 4, TRIES = 30, COLORS = 6, MAX_HINTS = 2, MIN_TRIES_BTW_HINTS = 5;
 const bool REPTS = false; // false = sin repeticiones, true = con repeticiones.
 
 // #### other typedef declarations ####
 typedef enum tColores { Rojo, Azul, Verde, Negro, Granate, Marrón };
 typedef tColores tCodigo[CHIPS];
-typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err };
+typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err, hint };
 
 // #### Prototypes ####
 void pause();
@@ -49,13 +49,15 @@ void genRndKey(tCodigo key);
 void printKey(tCodigo key);
 char toColorId(tColores color);
 tColores toColor(char id);
+string colorToColorName(tColores color);
 bool correctKeys(string input);
 void totCodigo(string input, tCodigo code);
 tStatus readCode(tCodigo code);
 bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys);
 void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score);
-void manageStatus(tStatus status, tCodigo code);
-usi computeScore(usi score, usi correct_keys, usi disordered_keys, bool won);
+void printHint(tCodigo key);
+void manageStatus(tStatus status);
+usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won);
 usi playMastermind();
 
 // #### main() ####
@@ -183,11 +185,12 @@ void genRndKey(tCodigo key) {
 
 	// Inicializar semilla:
 	srand((unsigned int)time(NULL));
+	usi rnd;
 
 	for (usi i = 0; i <= CHIPS - 1; i++) {
 
 		// Generar un número aleatorio entre 0 y COLORS - 1 inclusive:
-		usi rnd = rand() % COLORS;
+		rnd = rand() % COLORS;
 
 		if (!REPTS) { // La clave no puede contener repeticiones.
 			while (chart[rnd]) { // El color ya se ha usado en la clave.
@@ -254,6 +257,30 @@ tColores toColor(char id) {
 	}
 }
 
+/** Devuelve el string del color asociado a color. **/
+string colorToColorName(tColores color) {
+	switch (color) {
+		case Rojo:
+			return "rojo";
+			break;
+		case Azul:
+			return "azul";
+			break;
+		case Verde:
+			return "verde";
+			break;
+		case Negro:
+			return "negro";
+			break;
+		case Granate:
+			return "granate";
+			break;
+		case Marrón:
+			return "marrón";
+			break;
+	}
+}
+
 /** Devuelve true si input contiene identificadores correctos, false en otro caso. Se asume que la longitud de input es CHIPS. **/
 bool correctKeys(string input) {
 	bool correctKeys = true;
@@ -282,6 +309,8 @@ tStatus readCode(tCodigo code) {
 		return cancel;
 	} else if (input == "?") {
 		return help;
+	} else if (input == "!") {
+		return hint;
 	} else if (input.length() != CHIPS) { // Longitud del código inadecuada.
 		return length_err;
 	} else if (!correctKeys(input)) { // Longitud del código adecuada, identificadores incorrectos.
@@ -363,8 +392,22 @@ void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, us
 	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score > 1 ? "s" : "") << endl;
 }
 
-/** Imprime el mensaje correspondiente al estado status. No se contempla el status good. **/
-void manageStatus(tStatus status, tCodigo code) {
+/** Imprime en la consola una pista acerca de la clave. El sistema de pistas es el rudimentario de la especificación. **/
+void printHint(tCodigo key) {
+
+	// Inicializar semilla:
+	srand((unsigned int)time(NULL));
+
+	// Generar un número aleatorio entre 0 y CHIPS - 1 inclusive:
+	usi rnd = rand() % CHIPS;
+
+	// Imprimir pista:
+	cout << "El color en la posición " << rnd + 1 << " es: " << colorToColorName(key[rnd]) << ".";
+
+}
+
+/** Imprime el mensaje correspondiente al estado status. No se contemplan los status good ni hint. **/
+void manageStatus(tStatus status) {
 	switch (status) {
 		case cancel:
 			cout << "Has abandonado el juego.";
@@ -394,7 +437,7 @@ void manageStatus(tStatus status, tCodigo code) {
 }
 
 /** Calcula la puntuación agregada de un jugador. **/
-usi computeScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
+usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
 	return score += disordered_keys + 5 * correct_keys + (won ? 100 : 0);
 }
 
@@ -414,13 +457,16 @@ usi playMastermind() {
 	tCodigo code;
 	usi score = 0;
 	usi tries = 0;
+	short int lastHint = -1; // Representa el intento en el cual se proporcionó la última pista.
+							 // -1 indica que aún no se ha proporcionado ninguna pista.
+	usi hints = 0; // Representa la cantidad de pistas que se han proporcionado.
 	usi correct_keys = 0;
 	usi disordered_keys = 0;
 	bool won = false;
 	do {
 		status = readCode(code);
 		if (status == good) { // Se ha leído un código de tipo correcto.
-			
+
 			// Reinicializar contadores:
 			correct_keys = 0;
 			disordered_keys = 0;
@@ -428,10 +474,24 @@ usi playMastermind() {
 			// Calcular intentos, aciertos, puntuación e imprimir mensaje de rendimiento.
 			tries++;
 			won = calcPerformance(code, key, correct_keys, disordered_keys);
-			score = computeScore(score, correct_keys, disordered_keys, won);
+			score = calcScore(score, correct_keys, disordered_keys, won);
 			printPerformanceMsg(code, correct_keys, disordered_keys, tries, score);
+		} else if (status == hint) {
+			if (tries == 0) {
+				cout << "Consume al menos un intento para solicitar una pista.";
+			} else if (hints == MAX_HINTS) {
+				cout << "Se ha agotado el número máximo de pistas (" << hints << ").";
+			} else if (tries - lastHint < MIN_TRIES_BTW_HINTS && lastHint != -1) {
+				cout << "Sólo se puede solicitar una pista tras " << MIN_TRIES_BTW_HINTS;
+				cout << " intento" << (MIN_TRIES_BTW_HINTS > 1 ? "s" : "") << " desde que se dio la última.";
+			} else { // Se satisfacen los requisitos para solicitar una pista.
+				lastHint = tries;
+				hints++;
+				printHint(key);
+			}
+			cout << endl;
 		} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
-			manageStatus(status, code);
+			manageStatus(status);
 		}
 	} while (tries < TRIES && !won && status != cancel);
 	
