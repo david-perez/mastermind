@@ -14,7 +14,6 @@
 // #### Libraries ####
 #include <iostream>
 #include <cstdlib>
-// #include <regex>
 #include <ctime>
 #include <string>
 #include <fstream>
@@ -25,17 +24,17 @@ using namespace std;
 typedef unsigned short int usi;
 
 // #### Constants ####
-const string INVALID_TYPE = "ERROR. Tipo de datos no válido.";
-const string HELP_FILE = "ayuda.txt";
-const string CENTINEL = "xxx";
-const string PROMPT = "Código (? para ayuda, ! para pista, 0 para cancelar): ";
-const usi CHIPS = 4, TRIES = 30, COLORS = 6, MAX_HINTS = 2, MIN_TRIES_BTW_HINTS = 5;
+const string PROMPT = "Código (? para ayuda, ! para pista, 0 para cancelar): ", INVALID_TYPE = "ERROR. Tipo de datos no válido.";
+const string HELP_FILE = "ayuda.txt", USER_FILE = "usuarios.txt", CENTINEL = "xxx";
+const usi CHIPS = 4, TRIES = 30, COLORS = 6, MAX_HINTS = 2, MIN_TRIES_BTW_HINTS = 5, USER_FILE_COLS = 4, MAX_USER_LENGTH = 20;
+unsigned MAX_SCORE = 999999999;
 const bool REPTS = false; // false = sin repeticiones, true = con repeticiones.
 
 // #### other typedef declarations ####
 typedef enum tColores { Rojo, Azul, Verde, Negro, Granate, Marrón };
 typedef tColores tCodigo[CHIPS];
 typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err, hint };
+typedef unsigned tScore[USER_FILE_COLS - 1];
 
 // #### Prototypes ####
 void pause();
@@ -58,11 +57,21 @@ void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score);
 void printHint(tCodigo key);
 void manageStatus(tStatus status);
 usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won);
-usi playMastermind();
+usi playMastermind(string user);
+string getUserName();
+bool setScore(string user, tScore score);
+bool getScore(string user, tScore score);
+bool updateScore(string user, bool won, unsigned score);
+string unsignedToString(unsigned num, char filler, bool side);
+bool displayLeaderBoard();
 
 // #### main() ####
 int main() {
 	chcp1252();
+
+	// Solicitar el nombre del jugador:
+	string user = getUserName();
+	cout << "¡Hola " << user << "! Elige una opción..." << endl;
 
 	// Mostrar el menú y leer una opción:
 	usi opt = menu();
@@ -70,8 +79,11 @@ int main() {
 		cout << endl;
 		switch (opt) {
 			case 1: // Jugar una partida a Mastermind.
-				usi tries;
-				tries = playMastermind();
+				playMastermind(user);
+				break;
+			case 2:
+				displayLeaderBoard();
+				break;
 		}
 		
 		// Mostrar el menú y leer otra opción:
@@ -124,9 +136,10 @@ usi menu() {
 	cout << "--- MENÚ ---";
 	cout << endl << endl;
 	cout << "1 - Jugar." << endl;
+	cout << "2 - Puntuaciones." << endl;
 	cout << "0 - Salir." << endl;
 	cout << "Opción: ";
-	return (usi) readInt("Opción no valida. Opción: ", 0, 1);
+	return (usi) readInt("Opción no valida. Opción: ", 0, 2);
 }
 
 /** Muestra en consola los contenidos del archivo de texto fileName, desde la línea i hasta la j (inclusive).
@@ -206,10 +219,10 @@ void genRndKey(tCodigo key) {
 
 /** Imprime los identificadores de key a consola, seperados por un espacio. **/
 void printKey(tCodigo key) {
-	for (usi i = 0; i <= CHIPS - 1; i++) {
-		cout << toColorId(key[i]);
-		if (i != CHIPS - 1) cout << " ";
+	for (usi i = 0; i < CHIPS - 1; i++) {
+		cout << toColorId(key[i]) << " ";
 	}
+	cout << toColorId(key[CHIPS - 1]);
 }
 
 /** Devuelve el identificador de color. **/
@@ -378,8 +391,7 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	// Return:
 	if (correct_keys == CHIPS) {
 		return true;
-	}
-	else {
+	} else {
 		return false;
 	}
 }
@@ -444,7 +456,7 @@ usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
 /** Conduce el desarrollo de una partida a Mastermind. Devuelve el número de intentos empleados
  ** por el jugador (TRIES si no la acertó). Devuelve 0 si se selecciona la opción de salir, independientemente
  ** del número de intentos del jugador hasta ese momento. **/
-usi playMastermind() {
+usi playMastermind(string user) {
 	cout << "--- NUEVA PARTIDA ---" << endl << endl;
 	tCodigo key;
 	genRndKey(key);
@@ -455,7 +467,7 @@ usi playMastermind() {
 	// **************** </DEBUG> ****************
 	tStatus status;
 	tCodigo code;
-	usi score = 0;
+	unsigned score = 0;
 	usi tries = 0;
 	short int lastHint = -1; // Representa el intento en el cual se proporcionó la última pista.
 							 // -1 indica que aún no se ha proporcionado ninguna pista.
@@ -498,12 +510,188 @@ usi playMastermind() {
 	// Preguntar por la razón de salida del bucle.
 	if (won) { // El jugador ha acertado la clave.
 		cout << "¡ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
+		if (!updateScore(user, won, score)) cout << "Desafortunadamente, no se ha podido guardar tu puntuación por un error inesperado." << endl;
 	} else if (tries == TRIES) { // El jugador no acertó la clave en el intento TRIES.
 		cout << "Se te han acabado los " << tries << " intentos. La clave era: ";
 		printKey(key);
 		cout << "." << endl;
+		if (!updateScore(user, won, score)) cout << "No se ha podido guardar tu puntuación por un error inesperado." << endl;
 	} else { // El jugador ha abandonado el juego.
 		tries = 0;
 	}
 	return tries;
+}
+
+/** Solicita y devuelve el nombre introducido por el jugador.
+ ** El nombre debe ser una palabra de entre CENTINEL.length() + 1 y MAX_USER_LENGTH caracteres. **/
+string getUserName() {
+	string user;
+	cout << "Bienvenido a Mastermind. Por favor, introduce tu nombre: ";
+	getline(cin, user);
+	while (user.length() < CENTINEL.length() + 1 || user.find(" ") != -1 || user.length() > 20) {
+
+		// Distinguir entre los casos de error:
+		if (user.length() < CENTINEL.length() + 1) {
+			cout << "Los nombres no pueden tener menos de " << CENTINEL.length() + 1 << " caracteres." << endl;
+		} else if (user.find(" ") != -1) {
+			cout << "Los nombres no pueden tener espacios." << endl;
+		} else {
+			cout << "Los nombres no pueden tener más de " << MAX_USER_LENGTH << " caracteres." << endl;
+		}
+		cout << "Por favor, introduce tu nombre: ";
+		getline(cin, user);
+	}
+	return user;
+}
+
+/** Actualiza los datos de user en el archivo de texto USER_FILE con las nuevas puntuaciones.
+ ** Si user no se encuentra no hará nada.
+ ** Devuelve true si user se encuentra en el archivo, false si no se encuentra
+ ** o si no se puede acceder al archivo. **/
+bool setScore(string user, tScore score) {
+	bool found = false;
+	fstream file;
+	file.open(USER_FILE, ios::app); if (file.is_open()) file.close(); // Si el archivo no existe, fstream solo lo crea si se abre sólo como de escritura.
+	file.open(USER_FILE, ios::in | ios::out); // Abre el archivo en modo lectura y escritura.
+	if (file.is_open()) {
+		string buffUser;
+		file >> ws;
+		do {
+			file >> buffUser;
+			if (buffUser == user) {
+				found = true;
+				file >> ws;
+				file.seekp(file.tellg());
+				for (usi i = 0; i <= USER_FILE_COLS - 2; i++) {
+					file << unsignedToString(score[i], '0', false) << " ";
+				}
+			} else { // Se está leyendo el nombre de otro usuario. Descartar sus datos asociados.
+				for (usi i = 1; i <= USER_FILE_COLS - 1 && !file.eof() && !file.fail(); i++) {
+					file >> buffUser;
+				}
+			}
+		} while (!file.eof() && !file.fail() && !found && buffUser != CENTINEL);
+		file.close();
+	}
+	return found;
+}
+
+/** Copia en score los datos asociados a user en el archivo USER_FILE.
+ ** Si user no se encuentra no hará nada.
+ ** Devuelve true si user se encuentra en el archivo, false si no se encuentra
+ ** o si no se puede acceder al archivo. **/
+bool getScore(string user, tScore score) {
+	bool found = false;
+	ifstream file;
+	file.open(USER_FILE);
+	if (file.is_open()) {
+		string buffUser;
+		unsigned buffScore;
+		file >> ws;
+		do {
+			file >> buffUser;
+			if (buffUser == user) {
+				found = true;
+				for (usi i = 0; i <= USER_FILE_COLS - 2; i++) {
+					file >> ws;
+					file >> buffScore;
+					score[i] = buffScore;
+				}
+			} else { // Se está leyendo el nombre de otro usuario. Descartar sus tres datos asociados.
+				for (usi i = 0; i < USER_FILE_COLS - 1 && !file.eof() && !file.fail(); i++) {
+					file >> buffUser;
+				}
+			}
+		} while (!file.eof() && !file.fail() && !found && buffUser != CENTINEL);
+		file.close();
+	}
+	return found;
+}
+
+/** Actualiza la puntuación de user en USER_FILE. Si user no existe, se le inscribe con su puntuación. **/
+/** Devuelve true si tiene éxito, false si no lo tiene o si user excede la máxima puntuación
+ ** (en cuyo caso se le asigna MAX_SCORE como puntuación) . **/
+bool updateScore(string user, bool won, unsigned score) {
+	tScore newScore;
+	if (!getScore(user, newScore)) { // user no se encuentra en el archivo o no se puede acceder.
+		ofstream file;
+		file.open(USER_FILE, ios::in | ios::ate); // Coloca el cursor al final. Aunque no se vaya a leer, ios::in es necesario
+												  // para prevenir que el archivo se trunque.
+		if (!file.is_open()) { // No se podía abrir el archivo.
+			return false;
+		} else { // Sí se abrió el archivo, pero no se encontró user.
+			long pos = file.tellp();
+			file.seekp(pos - CENTINEL.length()); // Coloca el cursor justo delante del centinela.
+
+			// Inscribir a user en el archivo y añadir su puntuación.
+			file << user.insert(user.length(), MAX_USER_LENGTH + 1 - user.length(), ' '); // Escribe un string de MAX_USER_LENGTH + 1, siendo los
+																						  // primeros user y el resto espacios.
+			file << unsignedToString(1, '0', false) << " "; // 0000000001 partidas jugadas.
+			file << unsignedToString(won, '0', false) << " "; // 0000000000 o 0000000001 partidas ganadas.
+			file << unsignedToString(score, '0', false) << " ";
+			
+			// Reescribir el centinela.
+			file << '\n';
+			file << CENTINEL;
+
+			file.close();
+			return true;
+		}
+	} else {
+		if (newScore[2] + score > MAX_SCORE) { // user excedió la máxima puntuación. Asignarle MAX_SCORE y devolver false.
+											   // Se dará cuenta de porqué no se pudo guardar la puntuación cuando mire la tabla.
+			newScore[2] = MAX_SCORE;
+			newScore[0]++; if (won) newScore[1]++;
+			setScore(user, newScore);
+			return false;
+		} else {
+			newScore[0]++; newScore[2] += score; if (won) newScore[1]++;
+			if (!setScore(user, newScore)) {
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+	}
+}
+
+/** Convierte de unsigned a string, añadiendo tantos filler por la izquierda o por la derecha como sean necesarios.
+ ** side = true por la derecha; side = false por la izquierda;
+ ** Siempre devuelve un string de 10 caracteres (rango de unsigned: 0 a 4,294,967,295). **/
+string unsignedToString(unsigned num, char filler, bool side) {
+	string text = to_string(num);
+	usi pos;
+	if (side) {
+		pos = text.length();
+	} else {
+		pos = 0;
+	}
+	text.insert(pos, 10 - text.length(), filler);
+	return text;
+}
+
+/** Muestra en consola las puntuaciones asociadas a todos los usuarios de USER_FILE. **/
+bool displayLeaderBoard() {
+	ifstream file;
+	file.open(USER_FILE);
+	if (!file.is_open()) {
+		return false;
+	} else {
+		cout << left << setw(21) << "Usuario" << setw(12) << "Juegos" << setw(12) << "Ganados" << setw(12) << "Puntuación" << endl;
+		cout << "----------------------------------------------------------" << endl;
+		string buffUser;
+		unsigned buffScore;
+		file >> buffUser;
+		while (buffUser != CENTINEL || file.fail()) {
+			cout << setw(MAX_USER_LENGTH + 1) << buffUser << "| "; // Imprimir el nombre.
+			for (usi i = 0; i <= USER_FILE_COLS - 2; i++) { // Imprimir las puntuaciones asociadas.
+				file >> buffScore;
+				cout << unsignedToString(buffScore, ' ', true) << "| ";
+			}
+			cout << endl;
+			file >> buffUser;
+		}
+		cout << "----------------------------------------------------------" << endl;
+	}
 }
