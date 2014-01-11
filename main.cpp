@@ -370,20 +370,27 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	// Calcular aciertos totales:
 	for (usi i = 0; i <= CHIPS - 1; i++) {
 		if (code[i] == key[i]) {
-			chart[i] = true;
 			correct_keys++;
+			chart[i] = true;
 		}
 	}
 
 	// Calcular aciertos parciales:
-	bool found;
+	bool found[CHIPS];
+
+	// Inicializar todas las entradas de found a false.
 	for (usi i = 0; i <= CHIPS - 1; i++) {
-		found = false;
-		for (usi j = 0; j <= CHIPS - 1 && !found; j++) {
-			if (!chart[j] && code[i] == key[j]) {
+		found[i] = false;
+	}
+
+	bool matched;
+	for (usi i = 0; i <= CHIPS - 1; i++) {
+		matched = false;
+		for (usi j = 0; j <= CHIPS - 1 && !chart[i] && !matched; j++) {
+			if (key[i] == code[j] && !chart[j] && !found[j]) {
 				disordered_keys++;
-				chart[j] = true;
-				found = true;
+				found[j] = true;
+				matched = true;
 			}
 		}
 	}
@@ -401,7 +408,7 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries, usi score) {
 	cout << "   " << tries << ": ";
 	printKey(code);
-	cout << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score > 1 ? "s" : "") << endl;
+	cout << right << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score > 1 ? "s" : "") << endl;
 }
 
 /** Imprime en la consola una pista acerca de la clave. El sistema de pistas es el rudimentario de la especificación. **/
