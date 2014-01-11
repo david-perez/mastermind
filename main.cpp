@@ -377,25 +377,18 @@ tColores toColor(char id) {
 
 /** Devuelve el string del color asociado a color. **/
 string colorToColorName(tColores color) {
-	switch (color) {
-		case Rojo:
-			return "rojo";
-			break;
-		case Azul:
-			return "azul";
-			break;
-		case Verde:
-			return "verde";
-			break;
-		case Negro:
-			return "negro";
-			break;
-		case Granate:
-			return "granate";
-			break;
-		case Marrón:
-			return "marrón";
-			break;
+	if (color == Rojo) {
+		return "rojo";
+	} else if (color == Azul) {
+		return "azul";
+	} else if (color == Verde) {
+		return "verde";
+	} else if (color == Negro) {
+		return "negro";
+	} else if (color == Granate) {
+		return "granate";
+	} else { // color == Marrón
+		return "marrón";
 	}
 }
 
@@ -732,8 +725,8 @@ bool updateScore(string user, bool won, unsigned score) {
 		if (!file.is_open()) { // No se podía abrir el archivo.
 			return false;
 		} else { // Sí se abrió el archivo, pero no se encontró user.
-			long pos = file.tellp();
-			file.seekp(pos - CENTINEL.length()); // Coloca el cursor justo delante del centinela.
+			streampos pos = file.tellp();
+			file.seekp((long)pos - CENTINEL.length()); // Coloca el cursor justo delante del centinela.
 
 			// Inscribir a user en el archivo y añadir su puntuación.
 			file << user.insert(user.length(), MAX_USER_LENGTH + 1 - user.length(), ' '); // Escribe un string de MAX_USER_LENGTH + 1, siendo los
@@ -790,13 +783,13 @@ bool displayLeaderBoard() {
 	if (!file.is_open()) {
 		return false;
 	} else {
-		cout << left << setw(21) << "Usuario" << setw(12) << "Juegos" << setw(12) << "Ganados" << setw(12) << "Puntuación" << endl;
-		cout << "----------------------------------------------------------" << endl;
+		cout << setfill(' ') << left << setw(21) << "Usuario" << setw(12) << "Juegos" << setw(12) << "Ganados" << setw(12) << "Puntuación" << endl;
+		cout << setfill('-') << setw(58) << '-' << endl;
 		string buffUser;
 		unsigned buffScore;
 		file >> buffUser;
 		while (buffUser != CENTINEL || file.fail()) {
-			cout << setw(MAX_USER_LENGTH + 1) << buffUser << "| "; // Imprimir el nombre.
+			cout << setfill(' ') << setw(MAX_USER_LENGTH + 1) << buffUser << "| "; // Imprimir el nombre.
 			for (usi i = 0; i <= USER_FILE_COLS - 2; i++) { // Imprimir las puntuaciones asociadas.
 				file >> buffScore;
 				cout << unsignedToString(buffScore, ' ', true) << "| ";
@@ -804,6 +797,7 @@ bool displayLeaderBoard() {
 			cout << endl;
 			file >> buffUser;
 		}
-		cout << "----------------------------------------------------------" << endl;
+		cout << setfill('-') << setw(58) << '-' << endl;
+		return true;
 	}
 }
