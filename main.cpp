@@ -1,6 +1,6 @@
 /* --------------- AUTHORS ---------------
-- David PÈrez (hallaplay835@gmail.com).
-- Iv·n Calvo (calvuxi@gmail.com).
+- David P√©rez (hallaplay835@gmail.com).
+- Iv√°n Calvo (calvuxi@gmail.com).
 */
 
 /*
@@ -8,7 +8,7 @@
 1. ~
 
 #### SUGGESTIONS #### (~ indica llevadas a cabo)
-1. Preguntar cu·l es el propÛsito de que un archivo de texto del que se van a copiar strings acabe en centinela.
+1. Preguntar cu√°l es el prop√≥sito de que un archivo de texto del que se van a copiar strings acabe en centinela.
 */
 
 // #### Libraries ####
@@ -18,21 +18,22 @@
 #include <string>
 #include <fstream>
 #include <iomanip>
+#include <climits>
 
 using namespace std;
 
 typedef unsigned short int usi;
 
 // #### Constants ####
-const string PROMPT = "CÛdigo (? para ayuda, ! para pista, 0 para cancelar): ", INVALID_TYPE = "ERROR. Tipo de datos no v·lido.";
-const string SAVE_CONFIG_PROMPT = "ConfiguraciÛn guardada.";
+const string PROMPT = "C√≥digo (? para ayuda, ! para pista, 0 para cancelar): ", INVALID_TYPE = "ERROR. Tipo de datos no v√°lido.";
+const string SAVE_CONFIG_PROMPT = "Configuraci√≥n guardada.";
 const string HELP_FILE = "ayuda.txt", USER_FILE = "usuarios.txt", CENTINEL = "xxx";
 const usi CHIPS = 4, MAX_CHIPS = 6, MAX_TRIES = 30, COLORS = 6, MAX_HINTS = 2, MIN_TRIES_BTW_HINTS = 5, USER_FILE_COLS = 4, MAX_USER_LENGTH = 20;
 unsigned MAX_SCORE = 999999999;
 const bool REPTS = false; // false = sin repeticiones, true = con repeticiones.
 
 // #### other typedef declarations ####
-typedef enum tColores { Rojo, Azul, Verde, Negro, Granate, MarrÛn };
+typedef enum tColores { Rojo, Azul, Verde, Negro, Granate, Marron };
 typedef tColores tCodigo[MAX_CHIPS];
 typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err, hint };
 typedef unsigned tScore[USER_FILE_COLS - 1];
@@ -74,15 +75,15 @@ bool displayLeaderBoard();
 int main() {
 	chcp1252();
 
-	// Establecer la configuraciÛn por defecto:
+	// Establecer la configuraci√≥n por defecto:
 	usi chips = CHIPS, max_tries = MAX_TRIES, max_hints = MAX_HINTS, min_tries_btw_hints = MIN_TRIES_BTW_HINTS;
 	bool repts = REPTS; // false = sin repeticiones, true = con repeticiones.
 
 	// Solicitar el nombre del jugador:
 	string user = getUserName();
-	cout << "°Hola " << user << "! Elige una opciÛn..." << endl;
+	cout << "¬°Hola " << user << "! Elige una opci√≥n..." << endl;
 
-	// Mostrar el men˙ y leer una opciÛn:
+	// Mostrar el men√∫ y leer una opci√≥n:
 	usi opt = menu();
 	while (opt != 0) {
 		cout << endl;
@@ -93,15 +94,15 @@ int main() {
 			case 2:
 				displayLeaderBoard();
 				break;
-			case 3: // Mostrar configuraciÛn.
+			case 3: // Mostrar configuraci√≥n.
 				displayConfig(chips, max_tries, max_hints, min_tries_btw_hints, repts);
 				break;
-			case 4: // Cambiar configuraciÛn.
+			case 4: // Cambiar configuraci√≥n.
 				changeConfig(chips, max_tries, max_hints, min_tries_btw_hints, repts);
 				break;
 		}
 		
-		// Mostrar el men˙ y leer otra opciÛn:
+		// Mostrar el men√∫ y leer otra opci√≥n:
 		opt = menu();
 	}
 
@@ -110,16 +111,16 @@ int main() {
 
 // #### UDFs ####
 
-/** Pausa la ejecuciÛn del programa hasta que se pulse Intro. **/
+/** Pausa la ejecuci√≥n del programa hasta que se pulse Intro. **/
 void pause() {
 	cin.clear();
 	cin.sync();
 	cout << "Pulsa Intro para continuar...";
-	cin.ignore(INT_MAX, '\n'); // Consume INT_MAX caracteres o hasta el salto de lÌnea (incluido).
+	cin.ignore(INT_MAX, '\n'); // Consume INT_MAX caracteres o hasta el salto de l√≠nea (incluido).
 	// cin.ignore(); -> cin.ignore(1, EOF);
 }
 
-/** Cambia la p·gina de cÛdigos activa a 1252. **/
+/** Cambia la p√°gina de c√≥digos activa a 1252. **/
 void chcp1252(){
 	system("chcp 1252");
 	system("cls");
@@ -130,13 +131,13 @@ int readInt(string ERR_MSG, int m, int n) {
 	int input;
 	cin >> input;
 	while (cin.fail() || input < m || input > n) {
-		cin.clear(); cin.sync(); // Restablecer flujo, descartar m·s entrada.
+		cin.clear(); cin.sync(); // Restablecer flujo, descartar m√°s entrada.
 		cout << ERR_MSG;
 		cin >> input;
 	}
 	cin.sync();
 
-	// n es entero y v·lido.
+	// n es entero y v√°lido.
 	return input;
 }
 
@@ -145,7 +146,7 @@ int readNat(string ERR_MSG, unsigned int n) {
 	return readInt(ERR_MSG, n);
 }
 
-/** Lee y devuelve un booleano, mostrando la peticiÛn prompt y las opciones opt1 (true) y opt2 (false). **/
+/** Lee y devuelve un booleano, mostrando la petici√≥n prompt y las opciones opt1 (true) y opt2 (false). **/
 bool readBool(string prompt, string opt1, string opt2) {
 	cout << prompt << " (" << opt1 << "/" << opt2 << "): ";
 
@@ -153,7 +154,7 @@ bool readBool(string prompt, string opt1, string opt2) {
 
 	cin >> i;
 	while (cin.fail() || !(i == opt1 || i == opt2)) { // Validar que la entrada es de tipo correcto.
-		cin.clear(); cin.sync(); // Restablecer flujo, descartar m·s entrada.
+		cin.clear(); cin.sync(); // Restablecer flujo, descartar m√°s entrada.
 		cout << "ERROR. " << prompt << " (" << opt1 << "/" << opt2 << "): ";
 		cin >> i;
 	}
@@ -162,100 +163,100 @@ bool readBool(string prompt, string opt1, string opt2) {
 	if (i == opt1) return true; else return false;
 }
 
-/** Muestra el men˙ y devuelve un usi representando la selecciÛn del usuario. **/
+/** Muestra el men√∫ y devuelve un usi representando la selecci√≥n del usuario. **/
 usi menu() {
 	cout << endl;
-	cout << "--- MEN⁄ ---";
+	cout << "--- MEN√ö ---";
 	cout << endl << endl;
 	cout << "1 - Jugar." << endl;
 	cout << "2 - Puntuaciones." << endl;
-	cout << "3 - Mostrar configuraciÛn." << endl;
-	cout << "4 - Cambiar configuraciÛn." << endl;
+	cout << "3 - Mostrar configuraci√≥n." << endl;
+	cout << "4 - Cambiar configuraci√≥n." << endl;
 	cout << "0 - Salir." << endl;
-	cout << "OpciÛn: ";
-	return (usi)readInt("OpciÛn no valida. OpciÛn: ", 0, 4);
+	cout << "Opci√≥n: ";
+	return (usi)readInt("Opci√≥n no valida. Opci√≥n: ", 0, 4);
 }
 
-/** Muestra el men˙ de configuraciÛn y devuelve un usi representando la selecciÛn del usuario. **/
+/** Muestra el men√∫ de configuraci√≥n y devuelve un usi representando la selecci√≥n del usuario. **/
 usi configMenu() {
-	cout << "--- MEN⁄ DE CONFIGURACI”N ---";
+	cout << "--- MEN√ö DE CONFIGURACI√ìN ---";
 	cout << endl << endl;
-	cout << "1 - Cambiar n˙mero de fichas." << endl;
-	cout << "2 - Cambiar n˙mero m·ximo de intentos." << endl;
-	cout << "3 - Cambiar n˙mero m·ximo de pistas." << endl;
-	cout << "4 - Cambiar n˙mero mÌnimo de intentos entre pistas." << endl;
+	cout << "1 - Cambiar n√∫mero de fichas." << endl;
+	cout << "2 - Cambiar n√∫mero m√°ximo de intentos." << endl;
+	cout << "3 - Cambiar n√∫mero m√°ximo de pistas." << endl;
+	cout << "4 - Cambiar n√∫mero m√≠nimo de intentos entre pistas." << endl;
 	cout << "5 - Cambiar modo de juego (con o sin repeticiones)." << endl;
-	cout << "0 - Volver al men˙ principal." << endl;
-	cout << "OpciÛn: ";
-	return (usi)readInt("OpciÛn no valida. OpciÛn: ", 0, 5);
+	cout << "0 - Volver al men√∫ principal." << endl;
+	cout << "Opci√≥n: ";
+	return (usi)readInt("Opci√≥n no valida. Opci√≥n: ", 0, 5);
 }
 
-/** Realiza cambios en la configuraciÛn del juego. **/
+/** Realiza cambios en la configuraci√≥n del juego. **/
 void changeConfig(usi &chips, usi &max_tries, usi &max_hints, usi &min_tries_btw_hints, bool &repts) {
 
-	// Mostrar el men˙ de configuraciÛn y leer una opciÛn:
+	// Mostrar el men√∫ de configuraci√≥n y leer una opci√≥n:
 	usi opt = configMenu();
 	while (opt != 0) {
 		cout << endl;
 		switch (opt) {
-		case 1: // Cambiar n˙mero de fichas.
-			cout << "- Cambiar n˙mero de fichas. -" << endl << endl;
-			cout << "Introduce el n˙mero de fichas: ";
-			chips = readInt("El n˙mero de fichas debe estar entre 1 y 6. N˙mero de fichas: ", 1, 6);
+		case 1: // Cambiar n√∫mero de fichas.
+			cout << "- Cambiar n√∫mero de fichas. -" << endl << endl;
+			cout << "Introduce el n√∫mero de fichas: ";
+			chips = readInt("El n√∫mero de fichas debe estar entre 1 y 6. N√∫mero de fichas: ", 1, 6);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
-		case 2: // Cambiar n˙mero m·ximo de intentos.
-			cout << "- Cambiar n˙mero m·ximo de intentos. -" << endl << endl;
-			cout << "Introduce el n˙mero m·ximo de intentos: ";
-			max_tries = readInt("N˙mero m·ximo de intentos no v·lido. N˙mero m·ximo de intentos: ", 1);
+		case 2: // Cambiar n√∫mero m√°ximo de intentos.
+			cout << "- Cambiar n√∫mero m√°ximo de intentos. -" << endl << endl;
+			cout << "Introduce el n√∫mero m√°ximo de intentos: ";
+			max_tries = readInt("N√∫mero m√°ximo de intentos no v√°lido. N√∫mero m√°ximo de intentos: ", 1);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
-		case 3: // Cambiar n˙mero m·ximo de pistas.
-			cout << "- Cambiar n˙mero m·ximo de pistas. -" << endl << endl;
-			cout << "Introduce el n˙mero m·ximo de pistas: ";
-			max_hints = readInt("N˙mero m·ximo de pistas no v·lido. N˙mero m·ximo de pistas: ", 0);
+		case 3: // Cambiar n√∫mero m√°ximo de pistas.
+			cout << "- Cambiar n√∫mero m√°ximo de pistas. -" << endl << endl;
+			cout << "Introduce el n√∫mero m√°ximo de pistas: ";
+			max_hints = readInt("N√∫mero m√°ximo de pistas no v√°lido. N√∫mero m√°ximo de pistas: ", 0);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
-		case 4: // Cambiar n˙mero mÌnimo de intentos entre pistas.
-			cout << "- Cambiar n˙mero mÌnimo de intentos entre pistas. -" << endl << endl;
-			cout << "Introduce el n˙mero mÌnimo de intentos entre pistas: ";
-			min_tries_btw_hints = readInt("N˙mero mÌnimo de intentos entre pistas no v·lido. Introduce otro valor: .", 0);
+		case 4: // Cambiar n√∫mero m√≠nimo de intentos entre pistas.
+			cout << "- Cambiar n√∫mero m√≠nimo de intentos entre pistas. -" << endl << endl;
+			cout << "Introduce el n√∫mero m√≠nimo de intentos entre pistas: ";
+			min_tries_btw_hints = readInt("N√∫mero m√≠nimo de intentos entre pistas no v√°lido. Introduce otro valor: .", 0);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 5: // Cambiar modo de juego (con o sin repeticiones).
 			cout << "- Cambiar modo de juego (con o sin repeticiones). -" << endl << endl;
-			repts = readBool("øDeseas jugar con repeticiones?", "s", "n");
+			repts = readBool("¬øDeseas jugar con repeticiones?", "s", "n");
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
-		case 0: // Volver al men˙ principal.
-			cout << "- Volver al men˙ principal. -" << endl << endl;
+		case 0: // Volver al men√∫ principal.
+			cout << "- Volver al men√∫ principal. -" << endl << endl;
 			break;
 		}
 
-		// Mostrar el men˙ y leer otra opciÛn:
+		// Mostrar el men√∫ y leer otra opci√≥n:
 		opt = configMenu();
 	}
 }
 
-/** Muestra la configuraciÛn actual del juego en la consola. **/
+/** Muestra la configuraci√≥n actual del juego en la consola. **/
 void displayConfig(usi chips, usi max_tries, usi max_hints, usi min_tries_btw_hints, bool repts) {
-	cout << "--- MOSTRAR CONFIGURACI”N ACTUAL ---" << endl << endl;
-	cout << "N˙mero de fichas: " << chips << "." << endl;
-	cout << "N˙mero m·ximo de intentos: " << max_tries << "." << endl;
-	cout << "N˙mero m·ximo de pistas: " << max_hints << "." << endl;
-	cout << "N˙mero mÌnimo de intentos entre pistas: " << min_tries_btw_hints << "." << endl;
-	cout << "Modo de juego: cÛdigos " << (repts ? "con" : "sin") << " repeticiones." << endl;
+	cout << "--- MOSTRAR CONFIGURACI√ìN ACTUAL ---" << endl << endl;
+	cout << "N√∫mero de fichas: " << chips << "." << endl;
+	cout << "N√∫mero m√°ximo de intentos: " << max_tries << "." << endl;
+	cout << "N√∫mero m√°ximo de pistas: " << max_hints << "." << endl;
+	cout << "N√∫mero m√≠nimo de intentos entre pistas: " << min_tries_btw_hints << "." << endl;
+	cout << "Modo de juego: c√≥digos " << (repts ? "con" : "sin") << " repeticiones." << endl;
 }
 
-/** Muestra en consola los contenidos del archivo de texto fileName, desde la lÌnea i hasta la j (inclusive).
- ** Devuelve true si el archivo se muestra con Èxito, false en caso contrario. **/
+/** Muestra en consola los contenidos del archivo de texto fileName, desde la l√≠nea i hasta la j (inclusive).
+ ** Devuelve true si el archivo se muestra con √©xito, false en caso contrario. **/
 bool displayTXTFile(string fileName, unsigned int i, unsigned int j) {
 	ifstream file;
 	file.open(fileName.c_str());
 	if (!file.is_open()) {
 		return false;
 	} else {
-		// Imprimir archivo, copiando lÌnea a lÌnea:
+		// Imprimir archivo, copiando l√≠nea a l√≠nea:
 		string buff;
 		getline(file, buff);
 		for (unsigned int l = 1; l < j && !file.fail(); l++, getline(file, buff)) {
@@ -264,7 +265,7 @@ bool displayTXTFile(string fileName, unsigned int i, unsigned int j) {
 			}
 		}
 		if (!file.fail()) {
-			cout << buff; // ⁄ltima lÌnea sin endl.
+			cout << buff; // √öltima l√≠nea sin endl.
 		}
 		file.close();
 		return true;
@@ -272,14 +273,14 @@ bool displayTXTFile(string fileName, unsigned int i, unsigned int j) {
 }
 
 /** Muestra en consola los contenidos del archivo de texto fileName.
- ** Si se lee una lÌnea acabada en CENTINEL, ser· la ˙ltima lÌnea que se imprimir·. **/
+ ** Si se lee una l√≠nea acabada en CENTINEL, ser√° la √∫ltima l√≠nea que se imprimir√°. **/
 bool displayTXTFileWCentinel(string fileName, string centinel) {
 	ifstream file;
 	file.open(fileName.c_str());
 	if (!file.is_open()) {
 		return false;
 	} else {
-		// Imprimir archivo, copiando lÌnea a lÌnea:
+		// Imprimir archivo, copiando l√≠nea a l√≠nea:
 		string buff;
 		getline(file, buff);
 		while (!file.fail() && buff.substr(buff.length() - 3, 3) != centinel) {
@@ -307,17 +308,17 @@ void genRndKey(tCodigo key, usi chips, bool repts) {
 
 	for (usi i = 0; i <= chips - 1; i++) {
 
-		// Generar un n˙mero aleatorio entre 0 y COLORS - 1 inclusive:
+		// Generar un n√∫mero aleatorio entre 0 y COLORS - 1 inclusive:
 		rnd = rand() % COLORS;
 
 		if (!repts) { // La clave no puede contener repeticiones.
 			while (chart[rnd]) { // El color ya se ha usado en la clave.
-				rnd = rand() % COLORS; // Generar otro n˙mero.
+				rnd = rand() % COLORS; // Generar otro n√∫mero.
 			}
 		}
 		
 		chart[rnd] = true; // Marcar color como usado.
-		key[i] = (tColores)rnd; // Convertir y aÒadir a la clave.
+		key[i] = (tColores)rnd; // Convertir y a√±adir a la clave.
 	}
 
 }
@@ -348,7 +349,7 @@ char toColorId(tColores color) {
 		case Granate:
 			return 'G';
 			break;
-		case MarrÛn:
+		case Marron:
 			return 'M';
 			break;
 		default:
@@ -369,7 +370,7 @@ tColores toColor(char id) {
 	} else if (id == 'g' || id == 'G') {
 		return Granate;
 	} else if (id == 'm' || id == 'M') {
-		return MarrÛn;
+		return Marron;
 	} else {
 		return Rojo;
 	}
@@ -387,8 +388,8 @@ string colorToColorName(tColores color) {
 		return "negro";
 	} else if (color == Granate) {
 		return "granate";
-	} else { // color == MarrÛn
-		return "marrÛn";
+	} else { // color == Marron
+		return "Marron";
 	}
 }
 
@@ -411,7 +412,7 @@ void totCodigo(string input, tCodigo code, usi chips) {
 	}
 }
 
-/** Pide y lee un cÛdigo del usuario. Devuelve un estado y copia el cÛdigo a code si es del tipo correcto. **/
+/** Pide y lee un c√≥digo del usuario. Devuelve un estado y copia el c√≥digo a code si es del tipo correcto. **/
 tStatus readCode(tCodigo code, usi chips, bool repts) {
 	cout << PROMPT;
 	string input;
@@ -422,11 +423,11 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 		return help;
 	} else if (input == "!") {
 		return hint;
-	} else if (input.length() != chips) { // Longitud del cÛdigo inadecuada.
+	} else if (input.length() != chips) { // Longitud del c√≥digo inadecuada.
 		return length_err;
-	} else if (!correctKeys(input, chips)) { // Longitud del cÛdigo adecuada, identificadores incorrectos.
+	} else if (!correctKeys(input, chips)) { // Longitud del c√≥digo adecuada, identificadores incorrectos.
 		return key_err;
-	} else if (!repts) { // Longitud del cÛdigo adecuada, identificadores correctos. Comprobar repeticiones si procede.
+	} else if (!repts) { // Longitud del c√≥digo adecuada, identificadores correctos. Comprobar repeticiones si procede.
 		bool chart[COLORS];
 		bool flag = false; // Asumir que no hay repeticiones.
 
@@ -436,7 +437,7 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 		}
 
 		for (usi i = 0; i <= chips - 1 && !flag; i++) {
-			if (chart[toColor(input[i])]) { // Se habÌa leÌdo el identificador antes.
+			if (chart[toColor(input[i])]) { // Se hab√≠a le√≠do el identificador antes.
 				flag = true;
 			} else {
 				chart[toColor(input[i])] = true;
@@ -449,16 +450,16 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 			totCodigo(input, code, chips);
 			return good;
 		}
-	} else { // Longitud del cÛdigo adecuada, identificadores correctos. No hace falta comprobar repeticiones.
+	} else { // Longitud del c√≥digo adecuada, identificadores correctos. No hace falta comprobar repeticiones.
 		totCodigo(input, code, chips);
 		return good;
 	}
 }
 
-/** Calcula en correct_keys y disordered_keys el n˙mero de aciertos totales y parciales de code con respecto a key.
- ** Devuelve true si code y key son idÈnticos, false en caso contrario. **/
+/** Calcula en correct_keys y disordered_keys el n√∫mero de aciertos totales y parciales de code con respecto a key.
+ ** Devuelve true si code y key son id√©nticos, false en caso contrario. **/
 bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, usi chips) {
-	bool chart[MAX_CHIPS]; // El tamaÒo debe ser constante. Que sea el m·ximo.
+	bool chart[MAX_CHIPS]; // El tama√±o debe ser constante. Que sea el m√°ximo.
 
 	// Inicializar todas las entradas de chart a false.
 	for (usi i = 0; i <= chips - 1; i++) {
@@ -474,9 +475,9 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	}
 
 	// Calcular aciertos parciales:
-	bool found[MAX_CHIPS]; // El tamaÒo debe ser constante. Que sea el m·ximo.
+	bool found[MAX_CHIPS]; // El tama√±o debe ser constante. Que sea el m√°ximo.
 
-	// Inicializar todas las entradas a las que se podrÌa acceder de found a false.
+	// Inicializar todas las entradas a las que se podr√≠a acceder de found a false.
 	for (usi i = 0; i <= chips - 1; i++) {
 		found[i] = false;
 	}
@@ -501,25 +502,25 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	}
 }
 
-/** Muestra un mensaje en la consola indicando el n˙mero de aciertos totales y parciales
- ** (colores del codigo que est·n en la clave, pero descolocados), asÌ como el n˙mero de intentos. **/
+/** Muestra un mensaje en la consola indicando el n√∫mero de aciertos totales y parciales
+ ** (colores del codigo que est√°n en la clave, pero descolocados), as√≠ como el n√∫mero de intentos. **/
 void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries, usi score, usi chips) {
 	cout << "   " << tries << ": ";
 	printKey(code, chips);
-	cout << right << setfill(' ') << setw(8) << correct_keys << " ¨" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score == 0 || score > 1 ? "s" : "") << endl;
+	cout << right << setfill(' ') << setw(8) << correct_keys << " ¬¨" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score == 0 || score > 1 ? "s" : "") << endl;
 }
 
-/** Imprime en la consola una pista acerca de la clave. El sistema de pistas es el rudimentario de la especificaciÛn. **/
+/** Imprime en la consola una pista acerca de la clave. El sistema de pistas es el rudimentario de la especificaci√≥n. **/
 void printHint(tCodigo key, usi chips) {
 
 	// Inicializar semilla:
 	srand((unsigned int)time(NULL));
 
-	// Generar un n˙mero aleatorio entre 0 y chips - 1 inclusive:
+	// Generar un n√∫mero aleatorio entre 0 y chips - 1 inclusive:
 	usi rnd = rand() % chips;
 
 	// Imprimir pista:
-	cout << "El color en la posiciÛn " << rnd + 1 << " es: " << colorToColorName(key[rnd]) << ".";
+	cout << "El color en la posici√≥n " << rnd + 1 << " es: " << colorToColorName(key[rnd]) << ".";
 
 }
 
@@ -538,29 +539,29 @@ void manageStatus(tStatus status, usi chips) {
 			cout << endl << endl;
 			break;
 		case length_err:
-			cout << "La longitud de los cÛdigos debe ser de " << chips << " caracter";
+			cout << "La longitud de los c√≥digos debe ser de " << chips << " caracter";
 			cout << (chips > 1 ? "es" : "") << ".";
 			cout << endl;
 			break;
 		case key_err:
-			cout << "Los cÛdigos sÛlo pueden tener ciertos colores (? para consultar los permitidos).";
+			cout << "Los c√≥digos s√≥lo pueden tener ciertos colores (? para consultar los permitidos).";
 			cout << endl;
 			break;
 		case rept_err:
-			cout << "El modo de juego actual no admite cÛdigos con colores repetidos.";
+			cout << "El modo de juego actual no admite c√≥digos con colores repetidos.";
 			cout << endl;
 			break;
 	}
 }
 
-/** Calcula la puntuaciÛn agregada de un jugador. **/
+/** Calcula la puntuaci√≥n agregada de un jugador. **/
 usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
 	return score += disordered_keys + 5 * correct_keys + (won ? 100 : 0);
 }
 
-/** Conduce el desarrollo de una partida a Mastermind. Devuelve el n˙mero de intentos empleados
- ** por el jugador (max_tries si no la acertÛ). Devuelve 0 si se selecciona la opciÛn de salir, independientemente
- ** del n˙mero de intentos del jugador hasta ese momento. **/
+/** Conduce el desarrollo de una partida a Mastermind. Devuelve el n√∫mero de intentos empleados
+ ** por el jugador (max_tries si no la acert√≥). Devuelve 0 si se selecciona la opci√≥n de salir, independientemente
+ ** del n√∫mero de intentos del jugador hasta ese momento. **/
 usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tries_btw_hints, usi max_tries) {
 	cout << "--- NUEVA PARTIDA ---" << endl << endl;
 	tCodigo key;
@@ -574,21 +575,21 @@ usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tr
 	tCodigo code;
 	unsigned score = 0;
 	usi tries = 0;
-	short int lastHint = -1; // Representa el intento en el cual se proporcionÛ la ˙ltima pista.
-							 // -1 indica que a˙n no se ha proporcionado ninguna pista.
+	short int lastHint = -1; // Representa el intento en el cual se proporcion√≥ la √∫ltima pista.
+							 // -1 indica que a√∫n no se ha proporcionado ninguna pista.
 	usi hints = 0; // Representa la cantidad de pistas que se han proporcionado.
 	usi correct_keys = 0;
 	usi disordered_keys = 0;
 	bool won = false;
 	do {
 		status = readCode(code, chips, repts);
-		if (status == good) { // Se ha leÌdo un cÛdigo de tipo correcto.
+		if (status == good) { // Se ha le√≠do un c√≥digo de tipo correcto.
 
 			// Reinicializar contadores:
 			correct_keys = 0;
 			disordered_keys = 0;
 
-			// Calcular intentos, aciertos, puntuaciÛn e imprimir mensaje de rendimiento.
+			// Calcular intentos, aciertos, puntuaci√≥n e imprimir mensaje de rendimiento.
 			tries++;
 			won = calcPerformance(code, key, correct_keys, disordered_keys, chips);
 			score = calcScore(score, correct_keys, disordered_keys, won);
@@ -597,30 +598,30 @@ usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tr
 			if (tries == 0) {
 				cout << "Consume al menos un intento para solicitar una pista.";
 			} else if (hints == max_hints) {
-				cout << "Se ha agotado el n˙mero m·ximo de pistas (" << hints << ").";
+				cout << "Se ha agotado el n√∫mero m√°ximo de pistas (" << hints << ").";
 			} else if (tries - lastHint < min_tries_btw_hints && lastHint != -1) {
-				cout << "SÛlo se puede solicitar una pista tras " << min_tries_btw_hints;
-				cout << " intento" << (min_tries_btw_hints > 1 ? "s" : "") << " desde que se dio la ˙ltima.";
+				cout << "S√≥lo se puede solicitar una pista tras " << min_tries_btw_hints;
+				cout << " intento" << (min_tries_btw_hints > 1 ? "s" : "") << " desde que se dio la √∫ltima.";
 			} else { // Se satisfacen los requisitos para solicitar una pista.
 				lastHint = tries;
 				hints++;
 				printHint(key, chips);
 			}
 			cout << endl;
-		} else { // El cÛdigo leÌdo no era correcto, o se seleccionÛ la opciÛn de ayuda o la de salir. Imprimir el mensaje que corresponda.
+		} else { // El c√≥digo le√≠do no era correcto, o se seleccion√≥ la opci√≥n de ayuda o la de salir. Imprimir el mensaje que corresponda.
 			manageStatus(status, chips);
 		}
 	} while (tries < max_tries && !won && status != cancel);
 	
-	// Preguntar por la razÛn de salida del bucle.
+	// Preguntar por la raz√≥n de salida del bucle.
 	if (won) { // El jugador ha acertado la clave.
-		cout << "°ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
-		if (!updateScore(user, won, score)) cout << "Desafortunadamente, no se ha podido guardar tu puntuaciÛn por un error inesperado." << endl;
-	} else if (tries == max_tries) { // El jugador no acertÛ la clave en el intento TRIES.
+		cout << "¬°ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
+		if (!updateScore(user, won, score)) cout << "Desafortunadamente, no se ha podido guardar tu puntuaci√≥n por un error inesperado." << endl;
+	} else if (tries == max_tries) { // El jugador no acert√≥ la clave en el intento TRIES.
 		cout << "Se te han acabado los " << tries << " intentos. La clave era: ";
 		printKey(key, chips);
 		cout << "." << endl;
-		if (!updateScore(user, won, score)) cout << "No se ha podido guardar tu puntuaciÛn por un error inesperado." << endl;
+		if (!updateScore(user, won, score)) cout << "No se ha podido guardar tu puntuaci√≥n por un error inesperado." << endl;
 	} else { // El jugador ha abandonado el juego.
 		tries = 0;
 	}
@@ -641,7 +642,7 @@ string getUserName() {
 		} else if (user.find(" ") != -1) {
 			cout << "Los nombres no pueden tener espacios." << endl;
 		} else {
-			cout << "Los nombres no pueden tener m·s de " << MAX_USER_LENGTH << " caracteres." << endl;
+			cout << "Los nombres no pueden tener m√°s de " << MAX_USER_LENGTH << " caracteres." << endl;
 		}
 		cout << "Por favor, introduce tu nombre: ";
 		getline(cin, user);
@@ -650,13 +651,13 @@ string getUserName() {
 }
 
 /** Actualiza los datos de user en el archivo de texto USER_FILE con las nuevas puntuaciones.
- ** Si user no se encuentra no har· nada.
+ ** Si user no se encuentra no har√° nada.
  ** Devuelve true si user se encuentra en el archivo, false si no se encuentra
  ** o si no se puede acceder al archivo. **/
 bool setScore(string user, tScore score) {
 	bool found = false;
 	fstream file;
-	file.open(USER_FILE, ios::app); if (file.is_open()) file.close(); // Si el archivo no existe, fstream solo lo crea si se abre sÛlo como de escritura.
+	file.open(USER_FILE, ios::app); if (file.is_open()) file.close(); // Si el archivo no existe, fstream solo lo crea si se abre s√≥lo como de escritura.
 	file.open(USER_FILE, ios::in | ios::out); // Abre el archivo en modo lectura y escritura.
 	if (file.is_open()) {
 		string buffUser;
@@ -670,7 +671,7 @@ bool setScore(string user, tScore score) {
 				for (usi i = 0; i <= USER_FILE_COLS - 2; i++) {
 					file << unsignedToString(score[i], '0', false) << " ";
 				}
-			} else { // Se est· leyendo el nombre de otro usuario. Descartar sus datos asociados.
+			} else { // Se est√° leyendo el nombre de otro usuario. Descartar sus datos asociados.
 				for (usi i = 1; i <= USER_FILE_COLS - 1 && !file.eof() && !file.fail(); i++) {
 					file >> buffUser;
 				}
@@ -682,7 +683,7 @@ bool setScore(string user, tScore score) {
 }
 
 /** Copia en score los datos asociados a user en el archivo USER_FILE.
- ** Si user no se encuentra no har· nada.
+ ** Si user no se encuentra no har√° nada.
  ** Devuelve true si user se encuentra en el archivo, false si no se encuentra
  ** o si no se puede acceder al archivo. **/
 bool getScore(string user, tScore score) {
@@ -702,7 +703,7 @@ bool getScore(string user, tScore score) {
 					file >> buffScore;
 					score[i] = buffScore;
 				}
-			} else { // Se est· leyendo el nombre de otro usuario. Descartar sus tres datos asociados.
+			} else { // Se est√° leyendo el nombre de otro usuario. Descartar sus tres datos asociados.
 				for (usi i = 0; i < USER_FILE_COLS - 1 && !file.eof() && !file.fail(); i++) {
 					file >> buffUser;
 				}
@@ -713,22 +714,22 @@ bool getScore(string user, tScore score) {
 	return found;
 }
 
-/** Actualiza la puntuaciÛn de user en USER_FILE. Si user no existe, se le inscribe con su puntuaciÛn. **/
-/** Devuelve true si tiene Èxito, false si no lo tiene o si user excede la m·xima puntuaciÛn
- ** (en cuyo caso se le asigna MAX_SCORE como puntuaciÛn) . **/
+/** Actualiza la puntuaci√≥n de user en USER_FILE. Si user no existe, se le inscribe con su puntuaci√≥n. **/
+/** Devuelve true si tiene √©xito, false si no lo tiene o si user excede la m√°xima puntuaci√≥n
+ ** (en cuyo caso se le asigna MAX_SCORE como puntuaci√≥n) . **/
 bool updateScore(string user, bool won, unsigned score) {
 	tScore newScore;
 	if (!getScore(user, newScore)) { // user no se encuentra en el archivo o no se puede acceder.
 		ofstream file;
 		file.open(USER_FILE, ios::in | ios::ate); // Coloca el cursor al final. Aunque no se vaya a leer, ios::in es necesario
 												  // para prevenir que el archivo se trunque.
-		if (!file.is_open()) { // No se podÌa abrir el archivo.
+		if (!file.is_open()) { // No se pod√≠a abrir el archivo.
 			return false;
-		} else { // SÌ se abriÛ el archivo, pero no se encontrÛ user.
+		} else { // S√≠ se abri√≥ el archivo, pero no se encontr√≥ user.
 			streampos pos = file.tellp();
 			file.seekp((long)pos - CENTINEL.length()); // Coloca el cursor justo delante del centinela.
 
-			// Inscribir a user en el archivo y aÒadir su puntuaciÛn.
+			// Inscribir a user en el archivo y a√±adir su puntuaci√≥n.
 			file << user.insert(user.length(), MAX_USER_LENGTH + 1 - user.length(), ' '); // Escribe un string de MAX_USER_LENGTH + 1, siendo los
 																						  // primeros user y el resto espacios.
 			file << unsignedToString(1, '0', false) << " "; // 0000000001 partidas jugadas.
@@ -743,8 +744,8 @@ bool updateScore(string user, bool won, unsigned score) {
 			return true;
 		}
 	} else {
-		if (newScore[2] + score > MAX_SCORE) { // user excediÛ la m·xima puntuaciÛn. Asignarle MAX_SCORE y devolver false.
-											   // Se dar· cuenta de porquÈ no se pudo guardar la puntuaciÛn cuando mire la tabla.
+		if (newScore[2] + score > MAX_SCORE) { // user excedi√≥ la m√°xima puntuaci√≥n. Asignarle MAX_SCORE y devolver false.
+											   // Se dar√° cuenta de porqu√© no se pudo guardar la puntuaci√≥n cuando mire la tabla.
 			newScore[2] = MAX_SCORE;
 			newScore[0]++; if (won) newScore[1]++;
 			setScore(user, newScore);
@@ -761,7 +762,7 @@ bool updateScore(string user, bool won, unsigned score) {
 	}
 }
 
-/** Convierte de unsigned a string, aÒadiendo tantos filler por la izquierda o por la derecha como sean necesarios.
+/** Convierte de unsigned a string, a√±adiendo tantos filler por la izquierda o por la derecha como sean necesarios.
  ** side = true por la derecha; side = false por la izquierda;
  ** Siempre devuelve un string de 10 caracteres (rango de unsigned: 0 a 4,294,967,295). **/
 string unsignedToString(unsigned num, char filler, bool side) {
@@ -783,7 +784,7 @@ bool displayLeaderBoard() {
 	if (!file.is_open()) {
 		return false;
 	} else {
-		cout << setfill(' ') << left << setw(21) << "Usuario" << setw(12) << "Juegos" << setw(12) << "Ganados" << setw(12) << "PuntuaciÛn" << endl;
+		cout << setfill(' ') << left << setw(21) << "Usuario" << setw(12) << "Juegos" << setw(12) << "Ganados" << setw(12) << "Puntuaci√≥n" << endl;
 		cout << setfill('-') << setw(58) << '-' << endl;
 		string buffUser;
 		unsigned buffScore;
