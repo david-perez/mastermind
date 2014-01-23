@@ -38,32 +38,39 @@ typedef tColores tCodigo[MAX_CHIPS];
 typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err, hint };
 typedef unsigned tScore[USER_FILE_COLS - 1];
 
+typedef struct tConfig {
+	usi chips;
+	usi max_tries;
+	usi max_hints;
+	usi min_tries_btw_hints;
+	bool repts;
+};
+
 // #### Prototypes ####
 void pause();
 void chcp1252();
 int readInt(string ERR_MSG = INVALID_TYPE, int m = INT_MIN, int n = INT_MAX);
-int readNat(string ERR_MSG = INVALID_TYPE, unsigned int n = INT_MAX);
 bool readBool(string prompt, string opt1, string opt2);
 usi menu();
 usi configMenu();
-void changeConfig(usi &chips, usi &max_tries, usi &max_hints, usi &min_tries_btw_hints, bool &repts);
-void displayConfig(usi chips, usi max_tries, usi max_hints, usi min_tries_btw_hints, bool repts);
+void changeConfig(tConfig& config);
+void displayConfig(const tConfig& config);
 bool displayTXTFile(string fileName, unsigned int i = 1, unsigned int j = INT_MAX);
 bool displayTXTFileWCentinel(string fileName, string centinel);
-void genRndKey(tCodigo key, usi chips, bool repts);
-void printKey(tCodigo key, usi chips);
+void genRndKey(tCodigo key, const tConfig& config);
+void printKey(tCodigo key, const tConfig& config);
 char toColorId(tColores color);
 tColores toColor(char id);
 string colorToColorName(tColores color);
-bool correctKeys(string input, usi chips);
-void totCodigo(string input, tCodigo code, usi chips);
-tStatus readCode(tCodigo code, usi chips, bool repts);
-bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, usi chips);
-void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score, usi chips);
-void printHint(tCodigo key, usi chips);
-void manageStatus(tStatus status, usi chips);
+bool correctKeys(string input, const tConfig& config);
+void totCodigo(string input, tCodigo code, const tConfig& config);
+tStatus readCode(tCodigo code, const tConfig& config);
+bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, const tConfig& config);
+void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score, const tConfig& config);
+void printHint(tCodigo key, const tConfig& config);
+void manageStatus(tStatus status, const tConfig& config);
 usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won);
-usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tries_btw_hints, usi max_tries);
+usi playMastermind(string user, const tConfig& config);
 string getUserName();
 bool setScore(string user, tScore score);
 bool getScore(string user, tScore score);
@@ -74,10 +81,15 @@ bool displayLeaderBoard();
 // #### main() ####
 int main() {
 	chcp1252();
-
+	// Inicializar semilla:
+	srand((unsigned int)time(NULL));
 	// Establecer la configuración por defecto:
-	usi chips = CHIPS, max_tries = MAX_TRIES, max_hints = MAX_HINTS, min_tries_btw_hints = MIN_TRIES_BTW_HINTS;
-	bool repts = REPTS; // false = sin repeticiones, true = con repeticiones.
+	tConfig config;
+	config.chips = CHIPS;
+	config.max_tries = MAX_TRIES;
+	config.max_hints = MAX_HINTS;
+	config.min_tries_btw_hints = MIN_TRIES_BTW_HINTS;
+	config.repts = REPTS; // false = sin repeticiones, true = con repeticiones.
 
 	// Solicitar el nombre del jugador:
 	string user = getUserName();
@@ -89,16 +101,16 @@ int main() {
 		cout << endl;
 		switch (opt) {
 			case 1: // Jugar una partida a Mastermind.
-				playMastermind(user, chips, repts, max_hints, min_tries_btw_hints, max_tries);
+				playMastermind(user, config);
 				break;
 			case 2:
 				displayLeaderBoard();
 				break;
 			case 3: // Mostrar configuración.
-				displayConfig(chips, max_tries, max_hints, min_tries_btw_hints, repts);
+				displayConfig(config);
 				break;
 			case 4: // Cambiar configuración.
-				changeConfig(chips, max_tries, max_hints, min_tries_btw_hints, repts);
+				changeConfig(config);
 				break;
 		}
 		
@@ -139,11 +151,6 @@ int readInt(string ERR_MSG, int m, int n) {
 
 	// n es entero y válido.
 	return input;
-}
-
-/** Lee y devuelve un natural menor o igual que n. **/
-int readNat(string ERR_MSG, unsigned int n) {
-	return readInt(ERR_MSG, n);
 }
 
 /** Lee y devuelve un booleano, mostrando la petición prompt y las opciones opt1 (true) y opt2 (false). **/
@@ -192,7 +199,7 @@ usi configMenu() {
 }
 
 /** Realiza cambios en la configuración del juego. **/
-void changeConfig(usi &chips, usi &max_tries, usi &max_hints, usi &min_tries_btw_hints, bool &repts) {
+void changeConfig(tConfig& config) {
 
 	// Mostrar el menú de configuración y leer una opción:
 	usi opt = configMenu();
@@ -202,30 +209,30 @@ void changeConfig(usi &chips, usi &max_tries, usi &max_hints, usi &min_tries_btw
 		case 1: // Cambiar número de fichas.
 			cout << "- Cambiar número de fichas. -" << endl << endl;
 			cout << "Introduce el número de fichas: ";
-			chips = readInt("El número de fichas debe estar entre 1 y 6. Número de fichas: ", 1, 6);
+			config.chips = readInt("El número de fichas debe estar entre 1 y 6. Número de fichas: ", 1, 6);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 2: // Cambiar número máximo de intentos.
 			cout << "- Cambiar número máximo de intentos. -" << endl << endl;
 			cout << "Introduce el número máximo de intentos: ";
-			max_tries = readInt("Número máximo de intentos no válido. Número máximo de intentos: ", 1);
+			config.max_tries = readInt("Número máximo de intentos no válido. Número máximo de intentos: ", 1);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 3: // Cambiar número máximo de pistas.
 			cout << "- Cambiar número máximo de pistas. -" << endl << endl;
 			cout << "Introduce el número máximo de pistas: ";
-			max_hints = readInt("Número máximo de pistas no válido. Número máximo de pistas: ", 0);
+			config.max_hints = readInt("Número máximo de pistas no válido. Número máximo de pistas: ", 0);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 4: // Cambiar número mínimo de intentos entre pistas.
 			cout << "- Cambiar número mínimo de intentos entre pistas. -" << endl << endl;
 			cout << "Introduce el número mínimo de intentos entre pistas: ";
-			min_tries_btw_hints = readInt("Número mínimo de intentos entre pistas no válido. Introduce otro valor: .", 0);
+			config.min_tries_btw_hints = readInt("Número mínimo de intentos entre pistas no válido. Introduce otro valor: .", 0);
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 5: // Cambiar modo de juego (con o sin repeticiones).
 			cout << "- Cambiar modo de juego (con o sin repeticiones). -" << endl << endl;
-			repts = readBool("¿Deseas jugar con repeticiones?", "s", "n");
+			config.repts = readBool("¿Deseas jugar con repeticiones?", "s", "n");
 			cout << SAVE_CONFIG_PROMPT << endl << endl;
 			break;
 		case 0: // Volver al menú principal.
@@ -239,13 +246,13 @@ void changeConfig(usi &chips, usi &max_tries, usi &max_hints, usi &min_tries_btw
 }
 
 /** Muestra la configuración actual del juego en la consola. **/
-void displayConfig(usi chips, usi max_tries, usi max_hints, usi min_tries_btw_hints, bool repts) {
+void displayConfig(const tConfig& config) {
 	cout << "--- MOSTRAR CONFIGURACIÓN ACTUAL ---" << endl << endl;
-	cout << "Número de fichas: " << chips << "." << endl;
-	cout << "Número máximo de intentos: " << max_tries << "." << endl;
-	cout << "Número máximo de pistas: " << max_hints << "." << endl;
-	cout << "Número mínimo de intentos entre pistas: " << min_tries_btw_hints << "." << endl;
-	cout << "Modo de juego: códigos " << (repts ? "con" : "sin") << " repeticiones." << endl;
+	cout << "Número de fichas: " << config.chips << "." << endl;
+	cout << "Número máximo de intentos: " << config.max_tries << "." << endl;
+	cout << "Número máximo de pistas: " << config.max_hints << "." << endl;
+	cout << "Número mínimo de intentos entre pistas: " << config.min_tries_btw_hints << "." << endl;
+	cout << "Modo de juego: códigos " << (config.repts ? "con" : "sin") << " repeticiones." << endl;
 }
 
 /** Muestra en consola los contenidos del archivo de texto fileName, desde la línea i hasta la j (inclusive).
@@ -294,7 +301,7 @@ bool displayTXTFileWCentinel(string fileName, string centinel) {
 }
 
 /** Genera una clave de Mastermind en key de chips longitud, admitiendo o no repeticiones dependiendo del valor de repts. **/
-void genRndKey(tCodigo key, usi chips, bool repts) {
+void genRndKey(tCodigo key, const tConfig& config) {
 	bool chart[COLORS];
 
 	// Inicializar todas las entradas de chart a false.
@@ -302,16 +309,14 @@ void genRndKey(tCodigo key, usi chips, bool repts) {
 		chart[i] = false;
 	}
 
-	// Inicializar semilla:
-	srand((unsigned int)time(NULL));
 	usi rnd;
 
-	for (usi i = 0; i <= chips - 1; i++) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 
 		// Generar un número aleatorio entre 0 y COLORS - 1 inclusive:
 		rnd = rand() % COLORS;
 
-		if (!repts) { // La clave no puede contener repeticiones.
+		if (!config.repts) { // La clave no puede contener repeticiones.
 			while (chart[rnd]) { // El color ya se ha usado en la clave.
 				rnd = rand() % COLORS; // Generar otro número.
 			}
@@ -324,37 +329,37 @@ void genRndKey(tCodigo key, usi chips, bool repts) {
 }
 
 /** Imprime los identificadores de key a consola, separados por un espacio. **/
-void printKey(tCodigo key, usi chips) {
-	for (usi i = 0; i < chips - 1; i++) {
+void printKey(tCodigo key, const tConfig& config) {
+	for (usi i = 0; i < config.chips - 1; i++) {
 		cout << toColorId(key[i]) << " ";
 	}
-	cout << toColorId(key[chips - 1]);
+	cout << toColorId(key[config.chips - 1]);
 }
 
 /** Devuelve el identificador de color. **/
 char toColorId(tColores color) {
+	char result = 'R';
 	switch (color) {
 		case Rojo:
-			return 'R';
+			result = 'R';
 			break;
 		case Azul:
-			return 'A';
+			result = 'A';
 			break;
 		case Verde:
-			return 'V';
+			result = 'V';
 			break;
 		case Negro:
-			return 'N';
+			result = 'N';
 			break;
 		case Granate:
-			return 'G';
+			result = 'G';
 			break;
 		case Marron:
-			return 'M';
+			result = 'M';
 			break;
-		default:
-			return 'R';
 	}
+	return result;
 }
 
 /** Devuelve el tColor del identificador id. En caso de no existir el identificador, devuelve Rojo. **/
@@ -394,9 +399,9 @@ string colorToColorName(tColores color) {
 }
 
 /** Devuelve true si input contiene identificadores correctos, false en otro caso. Se asume que la longitud de input es chips. **/
-bool correctKeys(string input, usi chips) {
+bool correctKeys(string input, const tConfig& config) {
 	bool correctKeys = true;
-	for (usi i = 0; i <= chips - 1 && correctKeys; i++) {
+	for (usi i = 0; i <= config.chips - 1 && correctKeys; i++) {
 		if (input[i] != 'r' && input[i] != 'a' && input[i] != 'v' && input[i] != 'n' && input[i] != 'g' && input[i] != 'm'
 		 && input[i] != 'R' && input[i] != 'A' && input[i] != 'V' && input[i] != 'N' && input[i] != 'G' && input[i] != 'M') {
 			correctKeys = false;
@@ -406,14 +411,14 @@ bool correctKeys(string input, usi chips) {
 }
 
 /** Copia en code los colores asociados a los ids de los chars de string. **/
-void totCodigo(string input, tCodigo code, usi chips) {
-	for (usi i = 0; i <= chips - 1; i++) {
+void totCodigo(string input, tCodigo code, const tConfig& config) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 		code[i] = toColor(input[i]);
 	}
 }
 
 /** Pide y lee un código del usuario. Devuelve un estado y copia el código a code si es del tipo correcto. **/
-tStatus readCode(tCodigo code, usi chips, bool repts) {
+tStatus readCode(tCodigo code, const tConfig& config) {
 	cout << PROMPT;
 	string input;
 	getline(cin, input);
@@ -423,11 +428,11 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 		return help;
 	} else if (input == "!") {
 		return hint;
-	} else if (input.length() != chips) { // Longitud del código inadecuada.
+	} else if (input.length() != config.chips) { // Longitud del código inadecuada.
 		return length_err;
-	} else if (!correctKeys(input, chips)) { // Longitud del código adecuada, identificadores incorrectos.
+	} else if (!correctKeys(input, config)) { // Longitud del código adecuada, identificadores incorrectos.
 		return key_err;
-	} else if (!repts) { // Longitud del código adecuada, identificadores correctos. Comprobar repeticiones si procede.
+	} else if (!config.repts) { // Longitud del código adecuada, identificadores correctos. Comprobar repeticiones si procede.
 		bool chart[COLORS];
 		bool flag = false; // Asumir que no hay repeticiones.
 
@@ -436,7 +441,7 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 			chart[i] = false;
 		}
 
-		for (usi i = 0; i <= chips - 1 && !flag; i++) {
+		for (usi i = 0; i <= config.chips - 1 && !flag; i++) {
 			if (chart[toColor(input[i])]) { // Se había leído el identificador antes.
 				flag = true;
 			} else {
@@ -447,27 +452,27 @@ tStatus readCode(tCodigo code, usi chips, bool repts) {
 		if (flag) {
 			return rept_err;
 		} else {
-			totCodigo(input, code, chips);
+			totCodigo(input, code, config);
 			return good;
 		}
 	} else { // Longitud del código adecuada, identificadores correctos. No hace falta comprobar repeticiones.
-		totCodigo(input, code, chips);
+		totCodigo(input, code, config);
 		return good;
 	}
 }
 
 /** Calcula en correct_keys y disordered_keys el número de aciertos totales y parciales de code con respecto a key.
  ** Devuelve true si code y key son idénticos, false en caso contrario. **/
-bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, usi chips) {
+bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, const tConfig& config) {
 	bool chart[MAX_CHIPS]; // El tamaño debe ser constante. Que sea el máximo.
 
 	// Inicializar todas las entradas de chart a false.
-	for (usi i = 0; i <= chips - 1; i++) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 		chart[i] = false;
 	}
 
 	// Calcular aciertos totales:
-	for (usi i = 0; i <= chips - 1; i++) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 		if (code[i] == key[i]) {
 			correct_keys++;
 			chart[i] = true;
@@ -478,14 +483,14 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	bool found[MAX_CHIPS]; // El tamaño debe ser constante. Que sea el máximo.
 
 	// Inicializar todas las entradas a las que se podría acceder de found a false.
-	for (usi i = 0; i <= chips - 1; i++) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 		found[i] = false;
 	}
 
 	bool matched;
-	for (usi i = 0; i <= chips - 1; i++) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
 		matched = false;
-		for (usi j = 0; j <= chips - 1 && !chart[i] && !matched; j++) {
+		for (usi j = 0; j <= config.chips - 1 && !chart[i] && !matched; j++) {
 			if (key[i] == code[j] && !chart[j] && !found[j]) {
 				disordered_keys++;
 				found[j] = true;
@@ -495,7 +500,7 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 	}
 
 	// Return:
-	if (correct_keys == chips) {
+	if (correct_keys == config.chips) {
 		return true;
 	} else {
 		return false;
@@ -504,20 +509,17 @@ bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disorder
 
 /** Muestra un mensaje en la consola indicando el número de aciertos totales y parciales
  ** (colores del codigo que están en la clave, pero descolocados), así como el número de intentos. **/
-void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries, usi score, usi chips) {
+void printPerformanceMsg(tCodigo code, usi correct_keys, usi disordered_keys, usi tries, usi score, const tConfig& config) {
 	cout << "   " << tries << ": ";
-	printKey(code, chips);
+	printKey(code, config);
 	cout << right << setfill(' ') << setw(8) << correct_keys << " ¬" << setw(6) << disordered_keys << " ~" << setw(6) << score << " punto" << (score == 0 || score > 1 ? "s" : "") << endl;
 }
 
 /** Imprime en la consola una pista acerca de la clave. El sistema de pistas es el rudimentario de la especificación. **/
-void printHint(tCodigo key, usi chips) {
-
-	// Inicializar semilla:
-	srand((unsigned int)time(NULL));
+void printHint(tCodigo key, const tConfig& config) {
 
 	// Generar un número aleatorio entre 0 y chips - 1 inclusive:
-	usi rnd = rand() % chips;
+	usi rnd = rand() % config.chips;
 
 	// Imprimir pista:
 	cout << "El color en la posición " << rnd + 1 << " es: " << colorToColorName(key[rnd]) << ".";
@@ -525,7 +527,7 @@ void printHint(tCodigo key, usi chips) {
 }
 
 /** Imprime el mensaje correspondiente al estado status. No se contemplan los status good ni hint. **/
-void manageStatus(tStatus status, usi chips) {
+void manageStatus(tStatus status, const tConfig& config) {
 	switch (status) {
 		case cancel:
 			cout << "Has abandonado el juego.";
@@ -539,8 +541,8 @@ void manageStatus(tStatus status, usi chips) {
 			cout << endl << endl;
 			break;
 		case length_err:
-			cout << "La longitud de los códigos debe ser de " << chips << " caracter";
-			cout << (chips > 1 ? "es" : "") << ".";
+			cout << "La longitud de los códigos debe ser de " << config.chips << " caracter";
+			cout << (config.chips > 1 ? "es" : "") << ".";
 			cout << endl;
 			break;
 		case key_err:
@@ -562,13 +564,13 @@ usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
 /** Conduce el desarrollo de una partida a Mastermind. Devuelve el número de intentos empleados
  ** por el jugador (max_tries si no la acertó). Devuelve 0 si se selecciona la opción de salir, independientemente
  ** del número de intentos del jugador hasta ese momento. **/
-usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tries_btw_hints, usi max_tries) {
+usi playMastermind(string user, const tConfig& config) {
 	cout << "--- NUEVA PARTIDA ---" << endl << endl;
 	tCodigo key;
-	genRndKey(key, chips, repts);
+	genRndKey(key, config);
 	// **************** <DEBUG> ****************
 	cout << "La clave es: ";
-	printKey(key, chips);
+	printKey(key, config);
 	cout << endl;
 	// **************** </DEBUG> ****************
 	tStatus status;
@@ -582,7 +584,7 @@ usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tr
 	usi disordered_keys = 0;
 	bool won = false;
 	do {
-		status = readCode(code, chips, repts);
+		status = readCode(code, config);
 		if (status == good) { // Se ha leído un código de tipo correcto.
 
 			// Reinicializar contadores:
@@ -591,35 +593,35 @@ usi playMastermind(string user, usi chips, bool repts, usi max_hints, usi min_tr
 
 			// Calcular intentos, aciertos, puntuación e imprimir mensaje de rendimiento.
 			tries++;
-			won = calcPerformance(code, key, correct_keys, disordered_keys, chips);
+			won = calcPerformance(code, key, correct_keys, disordered_keys, config);
 			score = calcScore(score, correct_keys, disordered_keys, won);
-			printPerformanceMsg(code, correct_keys, disordered_keys, tries, score, chips);
+			printPerformanceMsg(code, correct_keys, disordered_keys, tries, score, config);
 		} else if (status == hint) {
 			if (tries == 0) {
 				cout << "Consume al menos un intento para solicitar una pista.";
-			} else if (hints == max_hints) {
+			} else if (hints == config.max_hints) {
 				cout << "Se ha agotado el número máximo de pistas (" << hints << ").";
-			} else if (tries - lastHint < min_tries_btw_hints && lastHint != -1) {
-				cout << "Sólo se puede solicitar una pista tras " << min_tries_btw_hints;
-				cout << " intento" << (min_tries_btw_hints > 1 ? "s" : "") << " desde que se dio la última.";
+			} else if (tries - lastHint < config.min_tries_btw_hints && lastHint != -1) {
+				cout << "Sólo se puede solicitar una pista tras " << config.min_tries_btw_hints;
+				cout << " intento" << (config.min_tries_btw_hints > 1 ? "s" : "") << " desde que se dio la última.";
 			} else { // Se satisfacen los requisitos para solicitar una pista.
 				lastHint = tries;
 				hints++;
-				printHint(key, chips);
+				printHint(key, config);
 			}
 			cout << endl;
 		} else { // El código leído no era correcto, o se seleccionó la opción de ayuda o la de salir. Imprimir el mensaje que corresponda.
-			manageStatus(status, chips);
+			manageStatus(status, config);
 		}
-	} while (tries < max_tries && !won && status != cancel);
+	} while (tries < config.max_tries && !won && status != cancel);
 	
 	// Preguntar por la razón de salida del bucle.
 	if (won) { // El jugador ha acertado la clave.
 		cout << "¡ENHORABUENA! Has ganado en " << tries << " intento" << (tries > 1 ? "s" : "") << "." << endl;
 		if (!updateScore(user, won, score)) cout << "Desafortunadamente, no se ha podido guardar tu puntuación por un error inesperado." << endl;
-	} else if (tries == max_tries) { // El jugador no acertó la clave en el intento TRIES.
+	} else if (tries == config.max_tries) { // El jugador no acertó la clave en el intento TRIES.
 		cout << "Se te han acabado los " << tries << " intentos. La clave era: ";
-		printKey(key, chips);
+		printKey(key, config);
 		cout << "." << endl;
 		if (!updateScore(user, won, score)) cout << "No se ha podido guardar tu puntuación por un error inesperado." << endl;
 	} else { // El jugador ha abandonado el juego.
