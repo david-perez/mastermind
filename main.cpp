@@ -38,17 +38,18 @@ typedef tColores tCodigo[MAX_CHIPS];
 typedef enum tStatus { good, cancel, help, length_err, key_err, rept_err, hint };
 typedef unsigned tScore[USER_FILE_COLS - 1];
 
-typedef struct tConfig {
+typedef struct {
 	usi chips;
 	usi max_tries;
 	usi max_hints;
 	usi min_tries_btw_hints;
 	bool repts;
-};
+} tConfig;
 
 // #### Prototypes ####
 void pause();
 void chcp1252();
+
 int readInt(string ERR_MSG = INVALID_TYPE, int m = INT_MIN, int n = INT_MAX);
 bool readBool(string prompt, string opt1, string opt2);
 usi menu();
@@ -57,13 +58,15 @@ void changeConfig(tConfig& config);
 void displayConfig(const tConfig& config);
 bool displayTXTFile(string fileName, unsigned int i = 1, unsigned int j = INT_MAX);
 bool displayTXTFileWCentinel(string fileName, string centinel);
+
 void genRndKey(tCodigo key, const tConfig& config);
 void printKey(tCodigo key, const tConfig& config);
+
 char toColorId(tColores color);
 tColores toColor(char id);
 string colorToColorName(tColores color);
-bool correctKeys(string input, const tConfig& config);
 void totCodigo(string input, tCodigo code, const tConfig& config);
+bool correctKeys(string input, const tConfig& config);
 tStatus readCode(tCodigo code, const tConfig& config);
 bool calcPerformance(tCodigo code, tCodigo key, usi &correct_keys, usi &disordered_keys, const tConfig& config);
 void printPerformanceMsg(tCodigo code, tCodigo key, usi tries, usi score, const tConfig& config);
@@ -71,6 +74,7 @@ void printHint(tCodigo key, const tConfig& config);
 void manageStatus(tStatus status, const tConfig& config);
 usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won);
 usi playMastermind(string user, const tConfig& config);
+
 string getUserName();
 bool setScore(string user, tScore score);
 bool getScore(string user, tScore score);
@@ -398,6 +402,13 @@ string colorToColorName(tColores color) {
 	}
 }
 
+/** Copia en code los colores asociados a los ids de los chars de string. **/
+void totCodigo(string input, tCodigo code, const tConfig& config) {
+	for (usi i = 0; i <= config.chips - 1; i++) {
+		code[i] = toColor(input[i]);
+	}
+}
+
 /** Devuelve true si input contiene identificadores correctos, false en otro caso. Se asume que la longitud de input es chips. **/
 bool correctKeys(string input, const tConfig& config) {
 	bool correctKeys = true;
@@ -408,13 +419,6 @@ bool correctKeys(string input, const tConfig& config) {
 		}
 	}
 	return correctKeys;
-}
-
-/** Copia en code los colores asociados a los ids de los chars de string. **/
-void totCodigo(string input, tCodigo code, const tConfig& config) {
-	for (usi i = 0; i <= config.chips - 1; i++) {
-		code[i] = toColor(input[i]);
-	}
 }
 
 /** Pide y lee un código del usuario. Devuelve un estado y copia el código a code si es del tipo correcto. **/
@@ -561,7 +565,7 @@ usi calcScore(usi score, usi correct_keys, usi disordered_keys, bool won) {
 	return score += disordered_keys + 5 * correct_keys + (won ? 100 : 0);
 }
 
-/** Conduce el desarrollo de una partida a Mastermind. Devuelve el número de intentos empleados
+/** Conduce el desarrollo de una partida de Mastermind. Devuelve el número de intentos empleados
  ** por el jugador (max_tries si no la acertó). Devuelve 0 si se selecciona la opción de salir, independientemente
  ** del número de intentos del jugador hasta ese momento. **/
 usi playMastermind(string user, const tConfig& config) {
@@ -569,9 +573,9 @@ usi playMastermind(string user, const tConfig& config) {
 	tCodigo key;
 	genRndKey(key, config);
 	// **************** <DEBUG> ****************
-	cout << "La clave es: ";
-	printKey(key, config);
-	cout << endl;
+	//cout << "La clave es: ";
+	//printKey(key, config);
+	//cout << endl;
 	// **************** </DEBUG> ****************
 	tStatus status;
 	tCodigo code;
@@ -747,7 +751,7 @@ bool updateScore(string user, bool won, unsigned score) {
 		}
 	} else {
 		if (newScore[2] + score > MAX_SCORE) { // user excedió la máxima puntuación. Asignarle MAX_SCORE y devolver false.
-											   // Se dará cuenta de porqué no se pudo guardar la puntuación cuando mire la tabla.
+											   // Se dará cuenta de por qué no se pudo guardar la puntuación cuando mire la tabla.
 			newScore[2] = MAX_SCORE;
 			newScore[0]++; if (won) newScore[1]++;
 			setScore(user, newScore);
